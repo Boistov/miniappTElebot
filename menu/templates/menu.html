@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Burger Shop Menu</title>
+    <script>
+        Telegram.WebApp.ready();
+
+        const cart = [];
+
+        function addToCart(itemId, itemName, itemPrice) {
+            const quantity = parseInt(document.getElementById(`quantity-${itemId}`).value);
+            cart.push({ id: itemId, name: itemName, price: itemPrice, quantity: quantity });
+            alert(`${itemName} added to cart.`);
+        }
+
+        function placeOrder() {
+            const customerName = prompt("Enter your name:");
+            const chatId = Telegram.WebApp.initDataUnsafe.user.id;
+
+            const orderData = {
+                customer_name: customerName,
+                chat_id: chatId,
+                items: cart
+            };
+
+            fetch("/place-order/", {
+                method: "POST",
+                body: JSON.stringify(orderData),
+                headers: { "Content-Type": "application/json" }
+            }).then(response => response.json())
+              .then(data => {
+                  alert("Order placed successfully!");
+                  Telegram.WebApp.close();
+              });
+        }
+    </script>
+</head>
+<body>
+    <h1>Burger Shop Menu</h1>
+    <ul>
+        {% for item in menu_items %}
+        <li>
+            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="width:100px;">
+            <h3>{{ item.name }} - ${{ item.price }}</h3>
+            <p>{{ item.description }}</p>
+            <label>Quantity: <input type="number" id="quantity-{{ item.id }}" value="1" min="1"></label>
+            <button onclick="addToCart({{ item.id }}, '{{ item.name }}', {{ item.price }})">Add to Cart</button>
+        </li>
+        {% endfor %}
+    </ul>
+    <button onclick="placeOrder()">Place Order</button>
+</body>
+</html>
